@@ -1,124 +1,95 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import "./App.css";
+import TaskFilter from "./components/TaskFilter";
+import TaskForm from "./components/TaskForm";
+import TaskList from "./components/TaskList";
+import TodoHeader from "./components/TodoHeader";
+import useTasks from "./hooks/useTasks";
+import useTheme from "./hooks/useTheme";
 
 function App() {
-  const [task, setTask] = useState("");
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
+  const [itemName, setItemName] = useState("");
+  const [itemPrice, setItemPrice] = useState("");
+  const [itemQuantity, setItemQuantity] = useState("1");
+  const { darkMode, toggleTheme } = useTheme();
+  const {
+    statusFilter,
+    setStatusFilter,
+    tasks,
+    filteredTasks,
+    completedTasksCount,
+    hasCompletedTasks,
+    totalAmount,
+    purchasedAmount,
+    remainingAmount,
+    addItem,
+    toggleItem,
+    deleteItem,
+    editItem,
+    clearPurchasedItems,
+  } = useTasks();
 
-    if (savedTheme !== null) {
-      return JSON.parse(savedTheme);
+  function handleAddItem(event) {
+    event.preventDefault();
+
+    const didAddItem = addItem(itemName, itemPrice, itemQuantity);
+    if (didAddItem) {
+      setItemName("");
+      setItemPrice("");
+      setItemQuantity("1");
     }
-
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem("tasks");
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
-
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
-
-  useEffect(() => {
-    localStorage.setItem("theme", JSON.stringify(darkMode));
-  }, [darkMode]);
-
-  function handleAddTask(e) {
-    e.preventDefault();
-
-    const trimmedTask = task.trim();
-    if (!trimmedTask) return;
-
-    const newTask = {
-      id: Date.now(),
-      text: trimmedTask,
-      completed: false,
-    };
-
-    setTasks((prevTasks) => [newTask, ...prevTasks]);
-    setTask("");
-  }
-
-  function handleToggleTask(id) {
-    setTasks((prevTasks) =>
-      prevTasks.map((item) =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
-    );
-  }
-
-  function handleDeleteTask(id) {
-    setTasks((prevTasks) => prevTasks.filter((item) => item.id !== id));
-  }
-
-  function handleClearCompleted() {
-    setTasks((prevTasks) => prevTasks.filter((item) => !item.completed));
   }
 
   return (
     <div className={darkMode ? "container dark" : "container"}>
       <div className="todo-card">
-        <div className="header">
-          <h1>Lista de tarefas</h1>
-          <button
-            className="theme-button"
-            onClick={() => setDarkMode((prev) => !prev)}
-          >
-            {darkMode ? "☀️" : "🌙"}
-          </button>
-        </div>
+        <TodoHeader darkMode={darkMode} onToggleTheme={toggleTheme} />
 
-        <form onSubmit={handleAddTask} className="form">
-          <input
-            type="text"
-            placeholder="Digite uma tarefa..."
-            value={task}
-            onChange={(e) => setTask(e.target.value)}
-          />
-          <button type="submit">Adicionar</button>
-        </form>
+        <TaskForm
+          itemName={itemName}
+          itemPrice={itemPrice}
+          itemQuantity={itemQuantity}
+          onItemNameChange={setItemName}
+          onItemPriceChange={setItemPrice}
+          onItemQuantityChange={setItemQuantity}
+          onSubmit={handleAddItem}
+        />
 
         <div className="info">
-          <span>Total: {tasks.length}</span>
-          <span>
-            Concluídas: {tasks.filter((item) => item.completed).length}
-          </span>
+          <span>Itens: {tasks.length}</span>
+          <span>Comprados: {completedTasksCount}</span>
         </div>
 
-        <ul className="task-list">
-          {tasks.length === 0 ? (
-            <p className="empty-message">Nenhuma tarefa cadastrada.</p>
-          ) : (
-            tasks.map((item) => (
-              <li key={item.id} className="task-item">
-                <label className="task-content">
-                  <input
-                    type="checkbox"
-                    checked={item.completed}
-                    onChange={() => handleToggleTask(item.id)}
-                  />
-                  <span className={item.completed ? "completed" : ""}>
-                    {item.text}
-                  </span>
-                </label>
+        <div className="summary-grid">
+          <div className="summary-card">
+            <strong>Total</strong>
+            <span>{totalAmount}</span>
+          </div>
+          <div className="summary-card">
+            <strong>Comprado</strong>
+            <span>{purchasedAmount}</span>
+          </div>
+          <div className="summary-card">
+            <strong>Restante</strong>
+            <span>{remainingAmount}</span>
+          </div>
+        </div>
 
-                <button
-                  className="delete-button"
-                  onClick={() => handleDeleteTask(item.id)}
-                >
-                  Excluir
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
+        <TaskFilter
+          currentFilter={statusFilter}
+          onFilterChange={setStatusFilter}
+        />
 
-        {tasks.some((item) => item.completed) && (
-          <button className="clear-button" onClick={handleClearCompleted}>
-            Limpar concluídas
+        <TaskList
+          tasks={filteredTasks}
+          onToggleTask={toggleItem}
+          onEditTask={editItem}
+          onDeleteTask={deleteItem}
+        />
+
+        {hasCompletedTasks && (
+          <button className="clear-button" onClick={clearPurchasedItems}>
+            Limpar comprados
           </button>
         )}
       </div>
