@@ -1,14 +1,18 @@
-function TaskForm({
+import { SHOPPING_CATEGORIES } from "../constants/shoppingCategories";
+
+function ShoppingForm({
   itemName,
   itemPrice,
   itemQuantity,
+  itemCategory,
   onItemNameChange,
   onItemPriceChange,
   onItemQuantityChange,
+  onItemCategoryChange,
   onSubmit,
 }) {
   return (
-    <form onSubmit={onSubmit} className="form">
+    <form onSubmit={onSubmit} className="shopping-form">
       <input
         type="text"
         placeholder="Digite um item..."
@@ -33,9 +37,21 @@ function TaskForm({
         value={itemQuantity}
         onChange={(event) => onItemQuantityChange(event.target.value)}
       />
+      <select
+        className="category-input"
+        aria-label="Categoria do item"
+        value={itemCategory}
+        onChange={(event) => onItemCategoryChange(event.target.value)}
+      >
+        {SHOPPING_CATEGORIES.map((category) => (
+          <option key={category.value} value={category.value}>
+            {category.label}
+          </option>
+        ))}
+      </select>
       <button type="submit">Adicionar</button>
     </form>
   );
 }
 
-export default TaskForm;
+export default ShoppingForm;

@@ -1,63 +1,75 @@
 import { useState } from "react";
 import "./App.css";
-import TaskFilter from "./components/TaskFilter";
-import TaskForm from "./components/TaskForm";
-import TaskList from "./components/TaskList";
-import TodoHeader from "./components/TodoHeader";
-import useTasks from "./hooks/useTasks";
+import ShoppingCategoryFilter from "./components/ShoppingCategoryFilter";
+import ShoppingFilter from "./components/ShoppingFilter";
+import ShoppingForm from "./components/ShoppingForm";
+import ShoppingList from "./components/ShoppingList";
+import ShoppingHeader from "./components/ShoppingHeader";
+import useShopping from "./hooks/useShopping";
 import useTheme from "./hooks/useTheme";
 
 function App() {
   const [itemName, setItemName] = useState("");
   const [itemPrice, setItemPrice] = useState("");
   const [itemQuantity, setItemQuantity] = useState("1");
+  const [itemCategory, setItemCategory] = useState("outros");
   const { darkMode, toggleTheme } = useTheme();
   const {
     statusFilter,
     setStatusFilter,
-    tasks,
-    filteredTasks,
-    completedTasksCount,
-    hasCompletedTasks,
+    categoryFilter,
+    setCategoryFilter,
+    shoppingItems,
+    filteredShoppingItems,
+    purchasedItemsCount,
+    hasPurchasedItems,
     totalAmount,
     purchasedAmount,
     remainingAmount,
-    addItem,
-    toggleItem,
-    deleteItem,
-    editItem,
+    addShoppingItem,
+    toggleShoppingItem,
+    deleteShoppingItem,
+    editShoppingItem,
     clearPurchasedItems,
-  } = useTasks();
+  } = useShopping();
 
   function handleAddItem(event) {
     event.preventDefault();
 
-    const didAddItem = addItem(itemName, itemPrice, itemQuantity);
+    const didAddItem = addShoppingItem(
+      itemName,
+      itemPrice,
+      itemQuantity,
+      itemCategory
+    );
     if (didAddItem) {
       setItemName("");
       setItemPrice("");
       setItemQuantity("1");
+      setItemCategory("outros");
     }
   }
 
   return (
     <div className={darkMode ? "container dark" : "container"}>
-      <div className="todo-card">
-        <TodoHeader darkMode={darkMode} onToggleTheme={toggleTheme} />
+      <div className="shopping-card">
+        <ShoppingHeader darkMode={darkMode} onToggleTheme={toggleTheme} />
 
-        <TaskForm
+        <ShoppingForm
           itemName={itemName}
           itemPrice={itemPrice}
           itemQuantity={itemQuantity}
+          itemCategory={itemCategory}
           onItemNameChange={setItemName}
           onItemPriceChange={setItemPrice}
           onItemQuantityChange={setItemQuantity}
+          onItemCategoryChange={setItemCategory}
           onSubmit={handleAddItem}
         />
 
         <div className="info">
-          <span>Itens: {tasks.length}</span>
-          <span>Comprados: {completedTasksCount}</span>
+          <span>Itens: {shoppingItems.length}</span>
+          <span>Comprados: {purchasedItemsCount}</span>
         </div>
 
         <div className="summary-grid">
@@ -75,19 +87,24 @@ function App() {
           </div>
         </div>
 
-        <TaskFilter
+        <ShoppingFilter
           currentFilter={statusFilter}
           onFilterChange={setStatusFilter}
         />
 
-        <TaskList
-          tasks={filteredTasks}
-          onToggleTask={toggleItem}
-          onEditTask={editItem}
-          onDeleteTask={deleteItem}
+        <ShoppingCategoryFilter
+          currentCategory={categoryFilter}
+          onCategoryChange={setCategoryFilter}
         />
 
-        {hasCompletedTasks && (
+        <ShoppingList
+          shoppingItems={filteredShoppingItems}
+          onToggleShoppingItem={toggleShoppingItem}
+          onEditShoppingItem={editShoppingItem}
+          onDeleteShoppingItem={deleteShoppingItem}
+        />
+
+        {hasPurchasedItems && (
           <button className="clear-button" onClick={clearPurchasedItems}>
             Limpar comprados
           </button>

@@ -4,17 +4,17 @@ const FILTER_OPTIONS = [
   { value: "completed", label: "Concluídas" },
 ];
 
-function TaskFilter({ currentFilter, onFilterChange }) {
+function ShoppingFilter({ currentFilter, onFilterChange }) {
   return (
-    <div className="filter-group" aria-label="Filtrar compras">
+    <div className="shopping-filter-group" aria-label="Filtrar compras">
       {FILTER_OPTIONS.map((option) => (
         <button
           key={option.value}
           type="button"
           className={
             currentFilter === option.value
-              ? "filter-button active"
-              : "filter-button"
+              ? "shopping-filter-button active"
+              : "shopping-filter-button"
           }
           onClick={() => onFilterChange(option.value)}
         >
@@ -25,4 +25,4 @@ function TaskFilter({ currentFilter, onFilterChange }) {
   );
 }
 
-export default TaskFilter;
+export default ShoppingFilter;

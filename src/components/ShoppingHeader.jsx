@@ -1,6 +1,6 @@
 import { FaLightbulb, FaRegLightbulb } from "react-icons/fa6";
 
-function TodoHeader({ darkMode, onToggleTheme }) {
+function ShoppingHeader({ darkMode, onToggleTheme }) {
   return (
     <div className="header">
       <h1>Lista de compras</h1>
@@ -11,4 +11,4 @@ function TodoHeader({ darkMode, onToggleTheme }) {
   );
 }
 
-export default TodoHeader;
+export default ShoppingHeader;
