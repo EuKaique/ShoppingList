@@ -3,6 +3,8 @@ import {
   SHOPPING_CATEGORIES,
   getCategoryLabel,
 } from "../constants/shoppingCategories";
+import { FaCheck, FaRegEdit, FaRegTrashAlt } from "react-icons/fa";
+import { IoCloseSharp } from "react-icons/io5";
 
 function formatCurrency(value) {
   return new Intl.NumberFormat("pt-BR", {
@@ -152,15 +154,15 @@ function ShoppingItem({
         {isEditing ? (
           <>
             <button className="save-button" onClick={handleSaveEditing}>
-              Salvar
+              <FaCheck />
             </button>
             <button className="secondary-button" onClick={handleCancelEditing}>
-              Cancelar
+              <IoCloseSharp />
             </button>
           </>
         ) : (
           <button className="secondary-button" onClick={handleStartEditing}>
-            Editar
+            <FaRegEdit />
           </button>
         )}
 
@@ -168,7 +170,7 @@ function ShoppingItem({
           className="delete-button"
           onClick={() => onDeleteShoppingItem(shoppingItem.id)}
         >
-          Excluir
+          <FaRegTrashAlt />
         </button>
       </div>
     </li>
