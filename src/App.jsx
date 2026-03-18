@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import ShoppingCategoryFilter from "./components/ShoppingCategoryFilter";
 import ShoppingFilter from "./components/ShoppingFilter";
@@ -13,6 +13,7 @@ function App() {
   const [itemPrice, setItemPrice] = useState("");
   const [itemQuantity, setItemQuantity] = useState("1");
   const [itemCategory, setItemCategory] = useState("outros");
+  const [installPrompt, setInstallPrompt] = useState(null);
   const { darkMode, toggleTheme } = useTheme();
   const {
     statusFilter,
@@ -33,6 +34,38 @@ function App() {
     clearPurchasedItems,
   } = useShopping();
 
+  useEffect(() => {
+    function handleBeforeInstallPrompt(event) {
+      event.preventDefault();
+      setInstallPrompt(event);
+    }
+
+    function handleAppInstalled() {
+      setInstallPrompt(null);
+    }
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
+  }, []);
+
+  useEffect(() => {
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+
+    if (!themeColorMeta) {
+      return;
+    }
+
+    themeColorMeta.setAttribute("content", darkMode ? "#111827" : "#4f46e5");
+  }, [darkMode]);
+
   function handleAddItem(event) {
     event.preventDefault();
 
@@ -50,10 +83,25 @@ function App() {
     }
   }
 
+  async function handleInstallClick() {
+    if (!installPrompt) {
+      return;
+    }
+
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  }
+
   return (
     <div className={darkMode ? "container dark" : "container"}>
       <div className="shopping-card">
-        <ShoppingHeader darkMode={darkMode} onToggleTheme={toggleTheme} />
+        <ShoppingHeader
+          darkMode={darkMode}
+          onToggleTheme={toggleTheme}
+          canInstall={Boolean(installPrompt)}
+          onInstallClick={handleInstallClick}
+        />
 
         <ShoppingForm
           itemName={itemName}
