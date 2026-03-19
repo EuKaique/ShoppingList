@@ -83,4 +83,23 @@ describe("Shopping app", () => {
     expect(screen.getByText("Sabão")).toBeInTheDocument();
     expect(screen.queryByText("Suco")).not.toBeInTheDocument();
   });
+  test("filters items by name", async () => {
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.type(screen.getByPlaceholderText("Digite um item..."), "Banana");
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
+
+    await user.type(screen.getByPlaceholderText("Digite um item..."), "Maca");
+    await user.click(screen.getByRole("button", { name: "Adicionar" }));
+
+    await user.type(
+      screen.getByPlaceholderText("Filtrar por nome..."),
+      "ban"
+    );
+
+    expect(screen.getByText("Banana")).toBeInTheDocument();
+    expect(screen.queryByText("Maca")).not.toBeInTheDocument();
+  });
 });

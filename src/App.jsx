@@ -5,6 +5,7 @@ import ShoppingFilter from "./components/ShoppingFilter";
 import ShoppingForm from "./components/ShoppingForm";
 import ShoppingList from "./components/ShoppingList";
 import ShoppingHeader from "./components/ShoppingHeader";
+import ShoppingNameFilter from "./components/ShoppingNameFilter";
 import useShopping from "./hooks/useShopping";
 import useTheme from "./hooks/useTheme";
 
@@ -20,6 +21,8 @@ function App() {
     setStatusFilter,
     categoryFilter,
     setCategoryFilter,
+    nameFilter,
+    setNameFilter,
     shoppingItems,
     filteredShoppingItems,
     purchasedItemsCount,
@@ -143,6 +146,11 @@ function App() {
         <ShoppingCategoryFilter
           currentCategory={categoryFilter}
           onCategoryChange={setCategoryFilter}
+        />
+
+        <ShoppingNameFilter
+          currentValue={nameFilter}
+          onValueChange={setNameFilter}
         />
 
         <ShoppingList

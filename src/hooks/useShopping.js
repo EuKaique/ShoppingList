@@ -55,6 +55,7 @@ function loadShoppingItems() {
 function useShopping() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [nameFilter, setNameFilter] = useState("");
   const [shoppingItems, setShoppingItems] = useState(loadShoppingItems);
 
   useEffect(() => {
@@ -83,8 +84,12 @@ function useShopping() {
 
     const matchesCategory =
       categoryFilter === "all" ? true : item.category === categoryFilter;
+    const normalizedNameFilter = nameFilter.trim().toLocaleLowerCase();
+    const matchesName = normalizedNameFilter
+      ? item.text.toLocaleLowerCase().includes(normalizedNameFilter)
+      : true;
 
-    return matchesStatus && matchesCategory;
+    return matchesStatus && matchesCategory && matchesName;
   });
 
   function addShoppingItem(text, priceInput, quantityInput, categoryInput) {
@@ -185,6 +190,8 @@ function useShopping() {
     setStatusFilter,
     categoryFilter,
     setCategoryFilter,
+    nameFilter,
+    setNameFilter,
     shoppingItems,
     filteredShoppingItems,
     purchasedItemsCount,
