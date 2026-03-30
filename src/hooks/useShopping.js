@@ -1,4 +1,7 @@
-import { SHOPPING_CATEGORIES } from "../constants/shoppingCategories";
+import {
+  SHOPPING_CATEGORIES,
+  getCategoryLabel,
+} from "../constants/shoppingCategories";
 import { useEffect, useState } from "react";
 
 function formatCurrency(value) {
@@ -43,6 +46,21 @@ function normalizeShoppingItem(item) {
   };
 }
 
+function normalizeHistoryEntry(entry) {
+  const items = Array.isArray(entry.items)
+    ? entry.items.map(normalizeShoppingItem)
+    : [];
+
+  return {
+    id: entry.id ?? Date.now(),
+    purchasedAt: entry.purchasedAt ?? new Date().toISOString(),
+    items: items.map((item) => ({
+      ...item,
+      categoryLabel: getCategoryLabel(item.category),
+    })),
+  };
+}
+
 function loadShoppingItems() {
   const savedShoppingItems =
     localStorage.getItem("shoppingItems") ?? localStorage.getItem("tasks");
@@ -52,15 +70,28 @@ function loadShoppingItems() {
     : [];
 }
 
+function loadShoppingHistory() {
+  const savedShoppingHistory = localStorage.getItem("shoppingHistory");
+
+  return savedShoppingHistory
+    ? JSON.parse(savedShoppingHistory).map(normalizeHistoryEntry)
+    : [];
+}
+
 function useShopping() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [nameFilter, setNameFilter] = useState("");
   const [shoppingItems, setShoppingItems] = useState(loadShoppingItems);
+  const [shoppingHistory, setShoppingHistory] = useState(loadShoppingHistory);
 
   useEffect(() => {
     localStorage.setItem("shoppingItems", JSON.stringify(shoppingItems));
   }, [shoppingItems]);
+
+  useEffect(() => {
+    localStorage.setItem("shoppingHistory", JSON.stringify(shoppingHistory));
+  }, [shoppingHistory]);
 
   const purchasedItemsCount = shoppingItems.filter(
     (item) => item.completed
@@ -180,9 +211,111 @@ function useShopping() {
   }
 
   function clearPurchasedItems() {
+    const purchasedItems = shoppingItems.filter((item) => item.completed);
+
+    if (purchasedItems.length === 0) {
+      return;
+    }
+
+    setShoppingHistory((previousShoppingHistory) => [
+      normalizeHistoryEntry({
+        id: Date.now(),
+        purchasedAt: new Date().toISOString(),
+        items: purchasedItems,
+      }),
+      ...previousShoppingHistory,
+    ]);
     setShoppingItems((previousShoppingItems) =>
       previousShoppingItems.filter((item) => !item.completed)
     );
+  }
+
+  function editHistoryItem(id, nextText, nextPrice, nextQuantity, nextDate) {
+    const trimmedText = nextText.trim();
+    const parsedPrice = parseOptionalPrice(nextPrice);
+    const parsedQuantity = parseOptionalQuantity(nextQuantity);
+    const parsedDate = new Date(nextDate);
+
+    if (
+      !trimmedText ||
+      Number.isNaN(parsedPrice) ||
+      parsedPrice < 0 ||
+      Number.isNaN(parsedQuantity) ||
+      parsedQuantity < 1 ||
+      Number.isNaN(parsedDate.getTime())
+    ) {
+      return false;
+    }
+
+    setShoppingHistory((previousShoppingHistory) =>
+      previousShoppingHistory.map((historyEntry) => {
+        const hasTargetItem = historyEntry.items.some((item) => item.id === id);
+
+        if (!hasTargetItem) {
+          return historyEntry;
+        }
+
+        return normalizeHistoryEntry({
+          ...historyEntry,
+          purchasedAt: parsedDate.toISOString(),
+          items: historyEntry.items.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  text: trimmedText,
+                  price: parsedPrice,
+                  quantity: parsedQuantity,
+                }
+              : item
+          ),
+        });
+      })
+    );
+
+    return true;
+  }
+
+  function deleteHistoryItem(id) {
+    setShoppingHistory((previousShoppingHistory) =>
+      previousShoppingHistory
+        .map((historyEntry) =>
+          normalizeHistoryEntry({
+            ...historyEntry,
+            items: historyEntry.items.filter((item) => item.id !== id),
+          })
+        )
+        .filter((historyEntry) => historyEntry.items.length > 0)
+    );
+  }
+
+  function clearShoppingHistory() {
+    setShoppingHistory([]);
+  }
+
+  function repeatHistoryMonth(itemIds) {
+    const idsToRepeat = new Set(itemIds);
+    const itemsToRepeat = shoppingHistory.flatMap((historyEntry) =>
+      historyEntry.items.filter((item) => idsToRepeat.has(item.id))
+    );
+
+    if (itemsToRepeat.length === 0) {
+      return;
+    }
+
+    const baseId = Date.now();
+    const repeatedItems = itemsToRepeat.map((item, index) => ({
+      id: baseId + index,
+      text: item.text,
+      price: item.price,
+      quantity: item.quantity,
+      category: item.category,
+      completed: false,
+    }));
+
+    setShoppingItems((previousShoppingItems) => [
+      ...repeatedItems,
+      ...previousShoppingItems,
+    ]);
   }
 
   return {
@@ -196,6 +329,7 @@ function useShopping() {
     filteredShoppingItems,
     purchasedItemsCount,
     hasPurchasedItems,
+    shoppingHistory,
     totalAmount: formatCurrency(totalAmountValue),
     purchasedAmount: formatCurrency(purchasedAmountValue),
     remainingAmount: formatCurrency(remainingAmountValue),
@@ -204,6 +338,10 @@ function useShopping() {
     deleteShoppingItem,
     editShoppingItem,
     clearPurchasedItems,
+    editHistoryItem,
+    deleteHistoryItem,
+    clearShoppingHistory,
+    repeatHistoryMonth,
   };
 }
 
